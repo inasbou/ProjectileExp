@@ -47,22 +47,31 @@ kotlin {
     }
 }
 
+
 compose.desktop {
     application {
         mainClass = "org.example.project.MainKt"
 
         nativeDistributions {
-
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            targetFormats(TargetFormat.Exe)
+            targetFormats(
+                TargetFormat.Exe,
+                TargetFormat.Msi,
+                TargetFormat.Dmg,
+                TargetFormat.Deb
+            )
             modules("java.instrument", "jdk.unsupported")
 
             // Bundle your JRE
             jvmArgs += listOf("-Djava.awt.headless=false")
-            packageName = "org.example.project"
-            packageVersion = "1.0.0"
-            includeAllModules = true
 
+            packageName = "Projectile Simulation"
+            packageVersion = "1.0.0"
+            includeAllModules=true
+
+            windows {
+                menuGroup = "Projectile Simulation"
+                shortcut = true
+            }
         }
     }
 }
