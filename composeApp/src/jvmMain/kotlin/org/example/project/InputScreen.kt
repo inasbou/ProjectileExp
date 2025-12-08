@@ -7,56 +7,30 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.example.project.theme.Theme
+import org.example.project.AppContainer
+
 
 @Composable
-fun InputScreen(viewModel: MainViewModel) {
-    val ui = viewModel.uiState
+fun InputScreen() {
+    val vm = AppContainer.mainViewModel
+    val ui = vm.uiState
 
     var masse by remember { mutableStateOf(ui.masse) }
     var gravite by remember { mutableStateOf(ui.gravite) }
     var vitesse0 by remember { mutableStateOf(ui.vitesse0) }
     var alpha0 by remember { mutableStateOf(ui.alpha0) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        OutlinedTextField(
-            value = masse,
-            onValueChange = { masse = it },
-            label = { Text("Masse (kg)") },
-            modifier = Modifier.fillMaxWidth()
-        )
+    Column(Modifier.fillMaxSize().padding(20.dp)) {
 
-        OutlinedTextField(
-            value = gravite,
-            onValueChange = { gravite = it },
-            label = { Text("Gravité (m/s²)") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = vitesse0,
-            onValueChange = { vitesse0 = it },
-            label = { Text("Vitesse initiale v₀ (m/s)") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = alpha0,
-            onValueChange = { alpha0 = it },
-            label = { Text("Angle α (degrees)") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(value = masse, onValueChange = { masse = it }, label = { Text("Masse") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = gravite, onValueChange = { gravite = it }, label = { Text("Gravité") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = vitesse0, onValueChange = { vitesse0 = it }, label = { Text("Vitesse v0") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = alpha0, onValueChange = { alpha0 = it }, label = { Text("Angle α") }, modifier = Modifier.fillMaxWidth())
 
         Button(
-            onClick = { viewModel.submitInputs(masse, gravite, vitesse0, alpha0) },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            onClick = {
+                vm.onEvent(AppEvent.SubmitInputs(masse, gravite, vitesse0, alpha0))
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Submit")
