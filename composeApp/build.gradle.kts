@@ -7,11 +7,25 @@ plugins {
     alias(libs.plugins.composeHotReload)
     kotlin("plugin.serialization") version "1.9.10"
 
+    //for javafx
+    id("org.openjfx.javafxplugin") version "0.1.0"//
 }
 
 repositories {
     google()
+    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    maven("https://maven.jzy3d.org/releases")
+    maven("https://maven.jzy3d.org/snapshots/")
+    maven("https://mvnrepository.com/artifact/org.jzy3d/")
+    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+
     mavenCentral()
+}
+
+javafx {
+    version = "17"
+
+    modules("javafx.swing", "javafx.web", "javafx.controls")
 }
 
 kotlin {
@@ -47,10 +61,24 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
+                //jzy3d
+                val jzy3d = "2.2.1"
+                implementation("org.jzy3d:jzy3d-native-jogl-swing:$jzy3d")
+                implementation("org.jzy3d:jzy3d-native-jogl-awt:$jzy3d")
+                implementation("org.jzy3d:jzy3d-core-awt:$jzy3d")
+                implementation("org.jzy3d:jzy3d-core:$jzy3d")
+                implementation("org.jzy3d:jzy3d-jdt-core:$jzy3d")
+
+                //Log4j
+                val log4jVersion = "2.20.0"
+                implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
+                implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
+                implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
             }
         }
     }
 }
+
 
 
 compose.desktop {
@@ -58,6 +86,23 @@ compose.desktop {
         mainClass = "org.example.project.MainKt"
 
         nativeDistributions {
+
+            modules(
+                "java.desktop",
+                "java.management",
+                "java.base",
+                "java.security.jgss",
+                "java.xml.crypto",
+                "java.compiler",
+                "java.instrument",
+                "java.sql",
+                "jdk.jfr",
+                "jdk.unsupported",
+                "jdk.unsupported.desktop",
+                "jdk.xml.dom"
+            )
+
+
             targetFormats(
                 TargetFormat.Exe,
                 TargetFormat.Msi,

@@ -80,12 +80,12 @@ fun ResultWindow(
 
                 Button(
                     onClick = {
-                        generateReportDoc(
-                            masse, gravite, vitesse0, alpha0,
-                            tof.toFloat(),
-                            maxHeight.toFloat(),
-                            range.toFloat()
-                        )
+//                        generateReportDoc(
+//                            masse, gravite, vitesse0, alpha0,
+//                            tof.toFloat(),
+//                            maxHeight.toFloat(),
+//                            range.toFloat()
+  //                      )
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier.padding(top = 8.dp)
