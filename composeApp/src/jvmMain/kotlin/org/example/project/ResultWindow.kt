@@ -1,18 +1,30 @@
 package org.example.project
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlin.math.max
 import org.example.project.theme.Theme
+import org.jzy3d.chart.AWTChart
+import org.jzy3d.chart.factories.SwingChartFactory
+import org.jzy3d.maths.BoundingBox3d
+import org.jzy3d.maths.Coord3d
+import org.jzy3d.plot3d.primitives.LineStrip
+import org.jzy3d.plot3d.rendering.canvas.Quality
+import org.jzy3d.plot3d.rendering.view.AWTView
+import java.awt.Component
+import javax.swing.JPanel
+
 
 @Composable
 fun ResultWindow(
@@ -80,12 +92,12 @@ fun ResultWindow(
 
                 Button(
                     onClick = {
-//                        generateReportDoc(
-//                            masse, gravite, vitesse0, alpha0,
-//                            tof.toFloat(),
-//                            maxHeight.toFloat(),
-//                            range.toFloat()
-  //                      )
+                        generateReportDoc(
+                            masse, gravite, vitesse0, alpha0,
+                            tof.toFloat(),
+                            maxHeight.toFloat(),
+                            range.toFloat()
+                        )
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier.padding(top = 8.dp)
@@ -134,60 +146,101 @@ fun ResultWindow(
         }
 
         Spacer(modifier = Modifier.height(12.dp))
+        val chart = SwingChartFactory().newChart(Quality.Advanced())
+        val curve = createProjectileCurve(v0,angle,g)
+        chart.add(curve)
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(420.dp)
-                .background(Color(0xFFF0F0F0), shape = RoundedCornerShape(6.dp))
-                .padding(8.dp)
-        ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                if (trajectory.size < 2) return@Canvas
+        val X_MAX = 520f
+        val Y_MAX = 2f
+        val Z_MAX = 130f
 
-                val maxX = trajectory.maxOf { it.x }.coerceAtLeast(1f)
-                val maxY = trajectory.maxOf { it.y }.coerceAtLeast(1f)
 
-                val padding = 20f
-                val drawableWidth = size.width - padding * 2
-                val drawableHeight = size.height - padding * 2
+        val newBounds = org.jzy3d.maths.BoundingBox3d(
+            -10f, X_MAX, // X bounds
+            -1f, Y_MAX, // Y bounds
+            -10f,  Z_MAX  // Z bounds
+        )
 
-                val scaleX = drawableWidth / maxX
-                val scaleY = drawableHeight / maxY
-                val groundY = size.height - padding
+        chart.view.setBoundManual(newBounds)
 
-                drawLine(
-                    color = Color.DarkGray,
-                    start = Offset(padding, groundY),
-                    end = Offset(size.width - padding, groundY),
-                    strokeWidth = 2f
-                )
+        chart.view.updateBoundsForceRefresh(true)
 
-                for (i in 1 until trajectory.size) {
-                    val p1 = trajectory[i - 1]
-                    val p2 = trajectory[i]
+         // calling swing panel
+        HysChartPanal(chart)
+        
+        
 
-                    drawLine(
-                        color = if (useDrag) Color(0xFF1E88E5) else Color.Red,
-                        start = Offset(padding + p1.x * scaleX, groundY - p1.y * scaleY),
-                        end = Offset(padding + p2.x * scaleX, groundY - p2.y * scaleY),
-                        strokeWidth = 3f
-                    )
-                }
 
-                val current = trajectory[index.coerceIn(0, trajectory.lastIndex)]
-                drawCircle(
-                    color = Color.Black,
-                    radius = 8f,
-                    center = Offset(
-                        padding + current.x * scaleX,
-                        groundY - current.y * scaleY
-                    )
-                )
-            }
-        }
     }
 }
 
-/**  the fucntion to calculate and display the trajectory
- * */
+private fun AWTView.updateBoundsForceRefresh(bool: Boolean) {}
+
+/**  the function to calculate and display the trajectory
+ */
+
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun HysChartPanal(chart: AWTChart) {
+    val jPanel: JPanel = remember { JPanel() }
+    var isLoding by remember { mutableStateOf(true) }
+
+
+    SwingPanel(
+        modifier = Modifier.fillMaxSize().padding(start = if (isLoding) 1.dp else 0.dp),
+        factory = {
+//            Platform.runLater {
+//            }
+            jPanel.removeAll()
+            chart.view.viewPoint = Coord3d(Math.PI / 4, Math.PI / 4, 1.0)
+            try {
+                chart.mouse.thread.start()
+                chart.addKeyboardCameraController()
+            } catch (e: Exception) {
+            }
+            var x = chart.apply {
+                try {
+
+                    mouse.thread.start()
+
+                } catch (e: Exception) {
+                }
+
+                // quality = Quality.Fastest()
+            }.canvas as Component
+            jPanel.add(x)        },
+
+        )
+
+    DisposableEffect(chart) { onDispose { jPanel.removeAll() } }
+}
+fun createProjectileCurve(v0: Float, angleDeg: Float, g: Float): LineStrip {
+    val points = mutableListOf<Coord3d>()
+    val velocity = v0.toDouble()
+    val gravity = g.toDouble()
+    val angle = Math.toRadians(angleDeg.toDouble())
+    val tMax = (2 * velocity * Math.sin(angle)) / gravity
+
+    var t = 0.0
+    val dt = tMax / 100 // Step size
+
+    while (t <= tMax) {
+        val x = velocity * t * Math.cos(angle)
+        val y = velocity * t * Math.sin(angle) - 0.5 * gravity * t * t
+
+        val zDepth = 1.0
+
+        if (y >= 0) {
+           // I want to display it in x and z I  set y to 1
+            points.add(Coord3d(x, 1.0, y))
+        }
+        t += dt
+    }
+
+    //  Create the Drawable LineStrip
+    val curve = LineStrip(points)
+
+    curve.wireframeColor = org.jzy3d.colors.Color.RED
+    return curve
+}

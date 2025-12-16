@@ -91,97 +91,10 @@ fun main() = application {
         title = "Projectile Simulation"
     ) {
         Theme {
-            //MainScreen()
-            val chart = SwingChartFactory().newChart(Quality.Advanced())
-            val curve = createProjectileCurve()
-            chart.add(curve)
-            HysChartPanal(chart)
+            MainScreen()
+
 
         }
     }
 }
 
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun HysChartPanal(chart: AWTChart) {
-    val jPanel: JPanel = remember { JPanel() }
-    var isLoding by remember { mutableStateOf(true) }
-
-
-    SwingPanel(
-        modifier = Modifier.fillMaxSize().padding(start = if (isLoding) 1.dp else 0.dp),
-        factory = {
-//            Platform.runLater {
-//            }
-            jPanel.removeAll()
-            chart.view.viewPoint = Coord3d(0.0, Math.PI / 10, 1.0)
-            try {
-                chart.mouse.thread.start()
-                chart.addKeyboardCameraController()
-            } catch (e: Exception) {
-            }
-            var x = chart.apply {
-                try {
-
-                    mouse.thread.start()
-
-//                    axisLayout.gridColor = colorToJzy3dColor(axisColor)
-//
-//                    this.axisLayout.mainColor = colorToJzy3dColor(axisColor)
-//
-//                    view.backgroundColor = colorToJzy3dColor(backgroundColor)
-//
-//                    if (this.colorbar != null) {
-//                        this.colorbar.apply {
-//                            background = colorToJzy3dColor(backgroundColor)
-//                            foreground = colorToJzy3dColor(axisColor)
-//                        }
-//                    }
-                } catch (e: Exception) {
-                }
-
-                // quality = Quality.Fastest()
-            }.canvas as Component
-            jPanel.add(x)        },
-
-        )
-
-    DisposableEffect(chart) { onDispose { jPanel.removeAll() } }
-}
-fun createProjectileCurve(): LineStrip {
-    val points = mutableListOf<Coord3d>()
-    val velocity = 50.0 // Initial velocity
-    val angle = Math.PI / 4 // 45 degrees launch angle
-    val g = 9.81 // Gravity
-    val tMax = (2 * velocity * Math.sin(angle)) / g // Max flight time
-
-    // Calculate points over time (t)
-    var t = 0.0
-    val dt = tMax / 100 // Step size
-
-    //
-
-    while (t <= tMax) {
-        // Projectile Motion Equations (assuming X is horizontal, Y is vertical)
-        val x = velocity * t * Math.cos(angle)
-        val y = velocity * t * Math.sin(angle) - 0.5 * g * t * t
-
-        // Since Jzy3d often uses Y and Z as the "floor", we'll plot
-        // the 2D parabola (x, y) with a small offset for the Z-axis (depth).
-        val zDepth = 0.5
-
-        if (y >= 0) { // Only plot above the ground
-            points.add(Coord3d(x, y, zDepth))
-        }
-        t += dt
-    }
-
-    // 2. Create the Drawable LineStrip (Curve)
-
-    val curve = LineStrip(points)
-
-// FIX: Explicitly set the color after creation
-    curve.wireframeColor = Color.RED
-    return curve
-}
