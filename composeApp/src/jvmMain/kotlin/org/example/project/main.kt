@@ -19,6 +19,9 @@ import org.jzy3d.maths.Coord3d
 import org.jzy3d.plot3d.rendering.canvas.Quality
 import java.awt.Component
 import javax.swing.JPanel
+import org.jzy3d.plot3d.primitives.LineStrip
+import org.jzy3d.colors.Color
+
 
 @Composable
 fun MainScreen() {
@@ -90,7 +93,8 @@ fun main() = application {
         Theme {
             //MainScreen()
             val chart = SwingChartFactory().newChart(Quality.Advanced())
-
+            val curve = createProjectileCurve()
+            chart.add(curve)
             HysChartPanal(chart)
 
         }
@@ -144,4 +148,40 @@ fun HysChartPanal(chart: AWTChart) {
         )
 
     DisposableEffect(chart) { onDispose { jPanel.removeAll() } }
+}
+fun createProjectileCurve(): LineStrip {
+    val points = mutableListOf<Coord3d>()
+    val velocity = 50.0 // Initial velocity
+    val angle = Math.PI / 4 // 45 degrees launch angle
+    val g = 9.81 // Gravity
+    val tMax = (2 * velocity * Math.sin(angle)) / g // Max flight time
+
+    // Calculate points over time (t)
+    var t = 0.0
+    val dt = tMax / 100 // Step size
+
+    //
+
+    while (t <= tMax) {
+        // Projectile Motion Equations (assuming X is horizontal, Y is vertical)
+        val x = velocity * t * Math.cos(angle)
+        val y = velocity * t * Math.sin(angle) - 0.5 * g * t * t
+
+        // Since Jzy3d often uses Y and Z as the "floor", we'll plot
+        // the 2D parabola (x, y) with a small offset for the Z-axis (depth).
+        val zDepth = 0.5
+
+        if (y >= 0) { // Only plot above the ground
+            points.add(Coord3d(x, y, zDepth))
+        }
+        t += dt
+    }
+
+    // 2. Create the Drawable LineStrip (Curve)
+
+    val curve = LineStrip(points)
+
+// FIX: Explicitly set the color after creation
+    curve.wireframeColor = Color.RED
+    return curve
 }

@@ -188,3 +188,6 @@ fun ResultWindow(
         }
     }
 }
+
+/**  the fucntion to calculate and display the trajectory
+ * */
